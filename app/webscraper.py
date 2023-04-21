@@ -12,7 +12,9 @@ from selenium.webdriver.support.ui import WebDriverWait
 from selenium.common.exceptions import TimeoutException, NoSuchElementException
 
 def configure_logging():
-    logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s', filename='webscraper.log', filemode='a')
+    log_directory = os.path.dirname(os.path.abspath(__file__))
+    log_file_path = os.path.join(log_directory, "webscraper.log")
+    logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s', filename=log_file_path, filemode='a')
     console_handler = logging.StreamHandler()
     console_handler.setLevel(logging.INFO)
     formatter = logging.Formatter('%(asctime)s - %(levelname)s - %(message)s')
@@ -126,7 +128,7 @@ class WebScraper:
 
         # Save the data to a CSV file
         file_exists = os.path.isfile(file_name)
-        with open(f'../data/{file_name}', 'a', newline='', encoding='utf-8') as csvfile:
+        with open(file_name, 'a', newline='', encoding='utf-8') as csvfile:
             writer = csv.DictWriter(csvfile, fieldnames=combined_df.columns)
 
             if not file_exists:

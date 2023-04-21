@@ -4,7 +4,7 @@ import dash
 from dash import dcc, html
 from dash.dependencies import Input, Output
 import plotly.express as px
-from webscraper import WebScraper
+from webscraper import WebScraper, configure_logging
 import threading
 
 chrome_driver_path = 'D:/chdriver/chromedriver.exe'
@@ -13,6 +13,7 @@ csv_file = 'listings_data.csv'
 
 # Function to start the scraping process
 def start_scraping():
+    configure_logging()
     main_driver = WebScraper.init_driver(chrome_driver_path)
     scraper = WebScraper(main_driver)
     listings_data = scraper.scrape_listings(url)
@@ -24,7 +25,10 @@ if not os.path.isfile(csv_file):
     scrape_thread.join()  # Wait for the scraping process to complete
 
 # Load data from CSV
-df = pd.read_csv(csv_file)
+if os.path.exists(csv_file):
+    df = pd.read_csv(csv_file)
+else:
+    print(f"File not found: {csv_file}")
 
 # Initialize the Dash app
 app = dash.Dash(__name__)
