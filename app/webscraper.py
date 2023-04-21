@@ -57,6 +57,11 @@ class WebScraper:
 
         try:
             data = {}
+
+            data["URL"] = url
+            data["CENA"] = self.try_extract_element(By.XPATH, '/html/body/div[1]/main/div[2]/section/div/div[2]/div/div/div[1]/div/span[2]/strong')
+            data["TYP NABÍDKY"] = self.try_extract_element(By.XPATH, '//*[@id="__next"]/main/div[1]/div/div[1]/nav/ol/li[3]/a')
+            data["LOKACE"] = self.try_extract_element(By.XPATH, '/html/body/div[1]/main/div[2]/section/div/div[1]/span/span[1]/span[2]/a')
             parameters_area1 = self.try_extract_element(By.XPATH, '/html/body/div[1]/main/div[2]/section/div/div[1]/div[4]/div')
             parameters_area2 = self.try_extract_element(By.XPATH, '/html/body/div[1]/main/div[2]/section/div/div[1]/section[1]/div/div[2]')
 
@@ -117,7 +122,7 @@ class WebScraper:
         df = pd.DataFrame(self.listings_data)
 
         # Define the fixed schema with the columns you want to include
-        columns = ['ČÍSLO INZERÁTU', 'DISPOZICE', 'STAV', 'DOSTUPNÉ OD', 'VLASTNICTVÍ', 'TYP BUDOVY', 'PLOCHA', 'VYBAVENO', 'PODLAŽÍ', 'PENB', 'Internet', 'Energie', 'MHD', 'Pošta', 'Obchod', 'Banka', 'Restaurace', 'Lékárna', 'Škola', 'Mateřská škola', 'Sportoviště', 'Hřiště']
+        columns = ['URL', 'CENA', 'TYP NABÍDKY', 'LOKACE', 'ČÍSLO INZERÁTU', 'DISPOZICE', 'STAV', 'DOSTUPNÉ OD', 'VLASTNICTVÍ', 'TYP BUDOVY', 'PLOCHA', 'VYBAVENO', 'PODLAŽÍ', 'PENB', 'Internet', 'Energie', 'MHD', 'Pošta', 'Obchod', 'Banka', 'Restaurace', 'Lékárna', 'Škola', 'Mateřská škola', 'Sportoviště', 'Hřiště']
         fixed_schema_df = pd.DataFrame(columns=columns)
 
         # Merge the scraped DataFrame into the fixed schema DataFrame, filling missing values with 'NaN'
@@ -145,16 +150,21 @@ class WebScraper:
             accept_button.click()
         except TimeoutException:
             logging.warning("Could not find the accept cookies button or it took too long to load.")
+    
+
 
     def scrape_listings(self, url):
-        self.driver.get(url)
+        main_url = url  # Store the main URL
+        self.driver.get(main_url)
         self.accept_cookies()
-        logging.info(f"Starting to scrape listings from {url}")
+        logging.info(f"Starting to scrape listings from {main_url}")
 
-        while True:
+        page_counter = 1
+        max_pages = 5
+
+        while page_counter <= max_pages:
             time.sleep(self.sleep_time)
             listing_links = self.wait.until(EC.presence_of_all_elements_located((By.XPATH, '//*[@id="__next"]/main/section/div/div[2]/div/div[5]/section/article//div[2]/h2')))
-
 
             try:
                 urls = [link.find_element_by_css_selector('a').get_attribute("href") for link in listing_links]
@@ -170,8 +180,13 @@ class WebScraper:
                     logging.error(f"Error extracting data from {listing_url}: {e}")
 
             try:
-                next_button = self.wait.until(EC.element_to_be_clickable((By.CSS_SELECTOR, "a.page-link")))
-                next_button.click()
+                self.driver.get(main_url)  # Go back to the main URL after processing each listing
+                link_button = self.wait.until(EC.presence_of_element_located((By.XPATH, "//li[@class='page-item']/a[@class='page-link'][span[contains(text(), 'Další')]]")))
+                self.wait.until_not(EC.staleness_of(link_button))
+                link_url = link_button.get_attribute("href")
+                self.driver.get(link_url)
+                main_url = link_url  # Update the main URL
+                page_counter += 1
             except TimeoutException:
                 logging.info("No more pages to scrape, exiting.")
                 break
