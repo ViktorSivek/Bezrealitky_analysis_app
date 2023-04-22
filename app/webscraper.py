@@ -65,9 +65,9 @@ class WebScraper:
             
             if data["TYP NABÍDKY"] != "PRODEJ":
                 try:
-                    data["utilities_services"] = self.try_extract_element(By.XPATH, '/html/body/div[1]/main/div[2]/section/div/div[2]/div/div/div[1]/div/div[2]/span[2]/strong')
-                    data["utilities_energy"] = self.try_extract_element(By.XPATH, '/html/body/div[1]/main/div[2]/section/div/div[2]/div/div/div[1]/div/div[3]/span[2]/strong')
-                    data["deposit"] = self.try_extract_element(By.XPATH, '/html/body/div[1]/main/div[2]/section/div/div[2]/div/div/div[1]/div/div[4]/span[2]/strong')
+                    data["POPLATKY ZA SLUŽBY"] = self.try_extract_element(By.XPATH, '/html/body/div[1]/main/div[2]/section/div/div[2]/div/div/div[1]/div/div[2]/span[2]/strong')
+                    data["POPLATKY ZA ENERGII"] = self.try_extract_element(By.XPATH, '/html/body/div[1]/main/div[2]/section/div/div[2]/div/div/div[1]/div/div[3]/span[2]/strong')
+                    data["VRATNÁ KAUCE"] = self.try_extract_element(By.XPATH, '/html/body/div[1]/main/div[2]/section/div/div[2]/div/div/div[1]/div/div[4]/span[2]/strong')
                 except:
                     pass
 
@@ -152,7 +152,7 @@ class WebScraper:
 
 
         # Define the fixed schema with the columns you want to include
-        columns = ['URL', 'CENA', 'TYP NABÍDKY', 'LOKACE', 'ČÍSLO INZERÁTU', 'DISPOZICE', 'STAV', 'DOSTUPNÉ OD', 'VLASTNICTVÍ', 'TYP BUDOVY', 'PLOCHA', 'VYBAVENO', 'PODLAŽÍ', 'PENB', 'Internet', 'Energie', 'Balkón', 'Terasa', 'Sklep', 'Lodžie', 'Bezbariérový přístup', 'Parkování', 'Výtah', 'Garáž', 'MHD', 'Pošta', 'Obchod', 'Banka', 'Restaurace', 'Lékárna', 'Škola', 'Mateřská škola', 'Sportoviště', 'Hřiště']
+        columns = ['URL', 'CENA', 'POPLATKY ZA SLUŽBY', 'POPLATKY ZA ENERGII', 'VRATNÁ KAUCE', 'TYP NABÍDKY', 'LOKACE', 'ČÍSLO INZERÁTU', 'DISPOZICE', 'STAV', 'DOSTUPNÉ OD', 'VLASTNICTVÍ', 'TYP BUDOVY', 'PLOCHA', 'VYBAVENO', 'PODLAŽÍ', 'PENB', 'Internet', 'Energie', 'Balkón', 'Terasa', 'Sklep', 'Lodžie', 'Bezbariérový přístup', 'Parkování', 'Výtah', 'Garáž', 'MHD', 'Pošta', 'Obchod', 'Banka', 'Restaurace', 'Lékárna', 'Škola', 'Mateřská škola', 'Sportoviště', 'Hřiště']
         fixed_schema_df = pd.DataFrame(columns=columns)
         fixed_schema_df.insert(0, 'Index', range(1, len(fixed_schema_df) + 1))
 
