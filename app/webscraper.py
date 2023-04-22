@@ -60,8 +60,17 @@ class WebScraper:
 
             data["URL"] = url
             data["CENA"] = self.try_extract_element(By.XPATH, '/html/body/div[1]/main/div[2]/section/div/div[2]/div/div/div[1]/div/span[2]/strong')
-            data["TYP NABÍDKY"] = self.try_extract_element(By.XPATH, '//*[@id="__next"]/main/div[1]/div/div[1]/nav/ol/li[3]/a')
             data["LOKACE"] = self.try_extract_element(By.XPATH, '/html/body/div[1]/main/div[2]/section/div/div[1]/span/span[1]/span[2]/a')
+            data["TYP NABÍDKY"] = self.try_extract_element(By.XPATH, '//*[@id="__next"]/main/div[1]/div/div[1]/nav/ol/li[3]/a')
+            
+            if data["TYP NABÍDKY"] != "PRODEJ":
+                try:
+                    data["utilities_services"] = self.try_extract_element(By.XPATH, '/html/body/div[1]/main/div[2]/section/div/div[2]/div/div/div[1]/div/div[2]/span[2]/strong')
+                    data["utilities_energy"] = self.try_extract_element(By.XPATH, '/html/body/div[1]/main/div[2]/section/div/div[2]/div/div/div[1]/div/div[3]/span[2]/strong')
+                    data["deposit"] = self.try_extract_element(By.XPATH, '/html/body/div[1]/main/div[2]/section/div/div[2]/div/div/div[1]/div/div[4]/span[2]/strong')
+                except:
+                    pass
+
             parameters_area1 = self.try_extract_element(By.XPATH, '/html/body/div[1]/main/div[2]/section/div/div[1]/div[4]/div')
             parameters_area2 = self.try_extract_element(By.XPATH, '/html/body/div[1]/main/div[2]/section/div/div[1]/section[1]/div/div[2]')
 
@@ -120,15 +129,59 @@ class WebScraper:
 
     def save_to_csv(self, file_name):
         df = pd.DataFrame(self.listings_data)
+        df.insert(0, 'Index', range(1, len(df) + 1))
+
+        # Rename columns that contain 'URL' to 'URL'
+        for col in df.columns:
+            if 'Balkón' in col:
+                df.rename(columns={col: 'Balkón'}, inplace=True)
+            if 'Terasa' in col:
+                df.rename(columns={col: 'Terasa'}, inplace=True)
+            if 'Sklep' in col:
+                df.rename(columns={col: 'Sklep'}, inplace=True)
+            if 'Lodžie' in col:
+                df.rename(columns={col: 'Lodžie'}, inplace=True)
+            if 'Bezbariérový přístup' in col:
+                df.rename(columns={col: 'Bezbariérový přístup'}, inplace=True)
+            if 'Parkování' in col:
+                df.rename(columns={col: 'Parkování'}, inplace=True)
+            if 'Výtah' in col:
+                df.rename(columns={col: 'Výtah'}, inplace=True)
+            if 'Garáž' in col:
+                df.rename(columns={col: 'Garáž'}, inplace=True)
+
 
         # Define the fixed schema with the columns you want to include
-        columns = ['URL', 'CENA', 'TYP NABÍDKY', 'LOKACE', 'ČÍSLO INZERÁTU', 'DISPOZICE', 'STAV', 'DOSTUPNÉ OD', 'VLASTNICTVÍ', 'TYP BUDOVY', 'PLOCHA', 'VYBAVENO', 'PODLAŽÍ', 'PENB', 'Internet', 'Energie', 'MHD', 'Pošta', 'Obchod', 'Banka', 'Restaurace', 'Lékárna', 'Škola', 'Mateřská škola', 'Sportoviště', 'Hřiště']
+        columns = ['URL', 'CENA', 'TYP NABÍDKY', 'LOKACE', 'ČÍSLO INZERÁTU', 'DISPOZICE', 'STAV', 'DOSTUPNÉ OD', 'VLASTNICTVÍ', 'TYP BUDOVY', 'PLOCHA', 'VYBAVENO', 'PODLAŽÍ', 'PENB', 'Internet', 'Energie', 'Balkón', 'Terasa', 'Sklep', 'Lodžie', 'Bezbariérový přístup', 'Parkování', 'Výtah', 'Garáž', 'MHD', 'Pošta', 'Obchod', 'Banka', 'Restaurace', 'Lékárna', 'Škola', 'Mateřská škola', 'Sportoviště', 'Hřiště']
         fixed_schema_df = pd.DataFrame(columns=columns)
+        fixed_schema_df.insert(0, 'Index', range(1, len(fixed_schema_df) + 1))
+
+        # Reset the index for both DataFrames before concatenating
+        fixed_schema_df.reset_index(drop=True, inplace=True)
+        df.reset_index(drop=True, inplace=True)
+
+        print("fixed_schema_df:")
+        print(fixed_schema_df.head())
+        print(fixed_schema_df.info())
+
+        print("df:")
+        print(df.head())
+        print(df.info())
 
         # Merge the scraped DataFrame into the fixed schema DataFrame, filling missing values with 'NaN'
+        # combined_df = pd.concat([fixed_schema_df, df], axis=0, ignore_index=True, sort=False).fillna('NaN')[columns]
+        # combined_df = pd.concat([fixed_schema_df.reset_index(drop=True), df.reset_index(drop=True)], axis=0, ignore_index=True, sort=False).fillna('NaN')[columns]
+        cols = pd.Series(df.columns)
+        for dup in cols[cols.duplicated()].unique():
+            cols[cols[cols == dup].index.values.tolist()] = [dup + '_' + str(i) if i != 0 else dup for i in range(sum(cols == dup))]
+        df.columns = cols
         combined_df = pd.concat([fixed_schema_df, df], axis=0, ignore_index=True, sort=False).fillna('NaN')[columns]
 
+
+
+
         # Add the 'Index' column with a range of values from 1 to the length of the DataFrame
+        combined_df.reset_index(drop=True, inplace=True)
         combined_df.insert(0, 'Index', range(1, len(combined_df) + 1))
 
         # Save the data to a CSV file
@@ -160,7 +213,7 @@ class WebScraper:
         logging.info(f"Starting to scrape listings from {main_url}")
 
         page_counter = 1
-        max_pages = 5
+        max_pages = 1
 
         while page_counter <= max_pages:
             time.sleep(self.sleep_time)
