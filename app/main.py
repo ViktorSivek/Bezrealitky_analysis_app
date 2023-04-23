@@ -18,22 +18,36 @@ def start_scraping():
     main_driver = WebScraper.init_driver(chrome_driver_path)
     scraper = WebScraper(main_driver)
     listings_data = scraper.scrape_listings(url)
-    data = DataHandler()
     
     print("LLLLLLLLLLIIIIIIIIIISSSSSSSSTTTTTTTTTIIIIIIIIIIIINNNNNNNNNGGGGGGGGGGGG")
     print(listings_data)
 
-# If the CSV file doesn't exist, start the scraping process in a separate thread
-if not os.path.isfile(csv_file):
-    scrape_thread = threading.Thread(target=start_scraping)
-    scrape_thread.start()
-    scrape_thread.join()  # Wait for the scraping process to complete
+# Function to start the scraping process and load data
+def load_data():
+    if not os.path.isfile(csv_file):
+        configure_logging()
+        main_driver = WebScraper.init_driver(chrome_driver_path)
+        scraper = WebScraper(main_driver)
+        listings_data = scraper.scrape_listings(url)
+        
+        # Save scraped data to the CSV file
+        scraper.save_to_csv(csv_file)
+        listings_data = pd.read_csv(csv_file)
+    else:
+        listings_data = pd.read_csv(csv_file)
 
-# Load data from CSV
-if os.path.exists(csv_file):
-    df = pd.read_csv(csv_file)
-else:
-    print(f"File not found: {csv_file}")
+    return listings_data
+
+df = load_data()
+data_handler = DataHandler(csv_file)
+cleaned_df = data_handler.clean_data(df)
+analysis_results = data_handler.analyze_data(cleaned_df)
+
+# # Load data from CSV
+# if os.path.exists(csv_file):
+#     df = pd.read_csv(csv_file)
+# else:
+#     print(f"File not found: {csv_file}")
 
 # Initialize the Dash app
 app = dash.Dash(__name__)
@@ -46,8 +60,8 @@ app.layout = html.Div([
         html.Label("X-axis:"),
         dcc.Dropdown(
             id='xaxis-selection',
-            options=[{'label': i, 'value': i} for i in df.columns],
-            value=df.columns[0]
+            options=[{'label': i, 'value': i} for i in cleaned_df.columns],
+            value=cleaned_df.columns[0]
         ),
     ], style={'width': '48%', 'display': 'inline-block'}),
 
@@ -55,8 +69,8 @@ app.layout = html.Div([
         html.Label("Y-axis:"),
         dcc.Dropdown(
             id='yaxis-selection',
-            options=[{'label': i, 'value': i} for i in df.columns],
-            value=df.columns[1]
+            options=[{'label': i, 'value': i} for i in cleaned_df.columns],
+            value=cleaned_df.columns[1]
         ),
     ], style={'width': '48%', 'display': 'inline-block'}),
 
@@ -88,18 +102,18 @@ app.layout = html.Div([
     Input('yaxis-selection', 'value')
 )
 def update_graph(x_value, y_value):
-    return px.scatter(df, x=x_value, y=y_value)
+    return px.scatter(cleaned_df, x=x_value, y=y_value)
 
 # Create a new column with numeric area values
-df['PLOCHA_NUM'] = df['PLOCHA'].str.extract('(\d+)').astype(float)
-df['CENA_NUM'] = df['CENA'].str.replace(' ', '').str.extract('(\d+)').astype(float)
+cleaned_df['PLOCHA_NUM'] = cleaned_df['PLOCHA'].str.extract('(\d+)').astype(float)
+cleaned_df['CENA_NUM'] = cleaned_df['CENA'].str.replace(' ', '').str.extract('(\d+)').astype(float)
 
 # Create new visualizations
-fig_bar = px.bar(df.groupby('TYP BUDOVY').size().reset_index(name='count'), x='TYP BUDOVY', y='count')
-fig_heatmap = px.imshow(df[['PLOCHA_NUM', 'PODLAŽÍ', 'CENA_NUM']].astype(float).corr())
-fig_pie = px.pie(df, names='DISPOZICE')
-fig_box = px.box(df, y='PLOCHA_NUM')
-fig_histogram = px.histogram(df, x='PLOCHA_NUM', nbins=20)
+fig_bar = px.bar(cleaned_df.groupby('TYP BUDOVY').size().reset_index(name='count'), x='TYP BUDOVY', y='count')
+fig_heatmap = px.imshow(cleaned_df[['PLOCHA_NUM', 'PODLAŽÍ', 'CENA_NUM']].astype(float).corr())
+fig_pie = px.pie(cleaned_df, names='DISPOZICE')
+fig_box = px.box(cleaned_df, y='PLOCHA_NUM')
+fig_histogram = px.histogram(cleaned_df, x='PLOCHA_NUM', nbins=20)
 
 # Update the new visualizations
 @app.callback(

@@ -252,9 +252,9 @@ class WebScraper:
         self.driver.quit()
 
         # Save the data to a CSV file
-        output = self.save_to_csv('listings_data.csv')
+        # output = self.save_to_csv('listings_data.csv')
 
-        data_row = self.listings_data
+        data = self.listings_data
 
-        return output
+        return data
 
