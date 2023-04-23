@@ -7,8 +7,8 @@ import plotly.express as px
 from webscraper import WebScraper, configure_logging
 import threading
 
-chrome_driver_path = 'D:/chdriver/chromedriver.exe'
-url = "https://www.bezrealitky.cz/vypis/nabidka-prodej/byt"
+chrome_driver_path = 'C:/Users/vsivek001/driver/chromedriver.exe'
+url = "https://www.bezrealitky.cz/vypis/nabidka-prodej/byt?page=51"
 csv_file = 'listings_data.csv'
 
 # Function to start the scraping process
