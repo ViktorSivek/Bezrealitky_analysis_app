@@ -59,17 +59,19 @@ class WebScraper:
             data = {}
 
             data["URL"] = url
-            data["CENA"] = self.try_extract_element(By.XPATH, '/html/body/div[1]/main/div[2]/section/div/div[2]/div/div/div[1]/div/span[2]/strong')
+            # data["CENA"] = self.try_extract_element(By.XPATH, '/html/body/div[1]/main/div[2]/section/div/div[2]/div/div/div[1]/div/span[2]/strong')
+            # data["CENA"] = self.try_extract_element(By.XPATH, '/html/body/div[1]/main/div[2]/section/div/div[2]/div/div/div[1]/div/div[1]/span[2]/strong')
             data["LOKACE"] = self.try_extract_element(By.XPATH, '/html/body/div[1]/main/div[2]/section/div/div[1]/span/span[1]/span[2]/a')
             data["TYP NABÍDKY"] = self.try_extract_element(By.XPATH, '//*[@id="__next"]/main/div[1]/div/div[1]/nav/ol/li[3]/a')
             
             if data["TYP NABÍDKY"] != "PRODEJ":
-                try:
-                    data["POPLATKY ZA SLUŽBY"] = self.try_extract_element(By.XPATH, '/html/body/div[1]/main/div[2]/section/div/div[2]/div/div/div[1]/div/div[2]/span[2]/strong')
-                    data["POPLATKY ZA ENERGII"] = self.try_extract_element(By.XPATH, '/html/body/div[1]/main/div[2]/section/div/div[2]/div/div/div[1]/div/div[3]/span[2]/strong')
-                    data["VRATNÁ KAUCE"] = self.try_extract_element(By.XPATH, '/html/body/div[1]/main/div[2]/section/div/div[2]/div/div/div[1]/div/div[4]/span[2]/strong')
-                except:
-                    pass
+            
+                data["CENA"] = self.try_extract_element(By.XPATH, '/html/body/div[1]/main/div[2]/section/div/div[2]/div/div/div[1]/div/div[1]/span[2]/strong')
+                data["POPLATKY ZA SLUŽBY"] = self.try_extract_element(By.XPATH, '/html/body/div[1]/main/div[2]/section/div/div[2]/div/div/div[1]/div/div[2]/span[2]/strong')
+                data["POPLATKY ZA ENERGII"] = self.try_extract_element(By.XPATH, '/html/body/div[1]/main/div[2]/section/div/div[2]/div/div/div[1]/div/div[3]/span[2]/strong')
+                data["VRATNÁ KAUCE"] = self.try_extract_element(By.XPATH, '/html/body/div[1]/main/div[2]/section/div/div[2]/div/div/div[1]/div/div[4]/span[2]/strong')
+            else:
+                data["CENA"] = self.try_extract_element(By.XPATH, '/html/body/div[1]/main/div[2]/section/div/div[2]/div/div/div[1]/div/span[2]/strong')
 
             parameters_area1 = self.try_extract_element(By.XPATH, '/html/body/div[1]/main/div[2]/section/div/div[1]/div[4]/div')
             parameters_area2 = self.try_extract_element(By.XPATH, '/html/body/div[1]/main/div[2]/section/div/div[1]/section[1]/div/div[2]')

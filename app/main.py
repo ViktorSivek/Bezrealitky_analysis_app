@@ -5,10 +5,11 @@ from dash import dcc, html
 from dash.dependencies import Input, Output
 import plotly.express as px
 from webscraper import WebScraper, configure_logging
+from datahandler import DataHandler
 import threading
 
 chrome_driver_path = 'D:/chdriver/chromedriver.exe'
-url = "https://www.bezrealitky.cz/vypis/nabidka-prodej/byt"
+url = "https://www.bezrealitky.cz/vypis/nabidka-prodej/byt?page=51"
 csv_file = 'listings_data.csv'
 
 # Function to start the scraping process
@@ -17,6 +18,10 @@ def start_scraping():
     main_driver = WebScraper.init_driver(chrome_driver_path)
     scraper = WebScraper(main_driver)
     listings_data = scraper.scrape_listings(url)
+    data = DataHandler()
+    
+    print("LLLLLLLLLLIIIIIIIIIISSSSSSSSTTTTTTTTTIIIIIIIIIIIINNNNNNNNNGGGGGGGGGGGG")
+    print(listings_data)
 
 # If the CSV file doesn't exist, start the scraping process in a separate thread
 if not os.path.isfile(csv_file):
