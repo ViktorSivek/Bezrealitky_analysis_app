@@ -42,7 +42,7 @@ class WebScraper:
         chrome_options.add_argument("--disable-infobars")
         chrome_options.add_argument("--disable-fonts")
         chrome_options.add_argument("--disable-popup-blocking")
-        # chrome_options.add_argument("--headless")  Disable view of browser
+       #  chrome_options.add_argument("--headless")  #Disable view of browser
         chrome_options.add_argument("--disable-images")
         chrome_options.add_argument("user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/74.0.3729.169 Safari/537.36")
 
@@ -67,9 +67,38 @@ class WebScraper:
             if data["TYP NABÍDKY"] != "PRODEJ":
             
                 data["CENA"] = self.try_extract_element(By.XPATH, '/html/body/div[1]/main/div[2]/section/div/div[2]/div/div/div[1]/div/div[1]/span[2]/strong')
-                data["POPLATKY ZA SLUŽBY"] = self.try_extract_element(By.XPATH, '/html/body/div[1]/main/div[2]/section/div/div[2]/div/div/div[1]/div/div[2]/span[2]/strong')
-                data["POPLATKY ZA ENERGII"] = self.try_extract_element(By.XPATH, '/html/body/div[1]/main/div[2]/section/div/div[2]/div/div/div[1]/div/div[3]/span[2]/strong')
-                data["VRATNÁ KAUCE"] = self.try_extract_element(By.XPATH, '/html/body/div[1]/main/div[2]/section/div/div[2]/div/div/div[1]/div/div[4]/span[2]/strong')
+                divs = self.driver.find_elements(By.XPATH, '/html/body/div[1]/main/div[2]/section/div/div[2]/div/div/div[1]/div/div')
+
+                for div in divs:
+                    try:
+                        title_element = div.find_element(By.XPATH, './span[1]/span')
+                        value_element = div.find_element(By.XPATH, './span[2]/strong')
+                    except NoSuchElementException:
+                        continue
+
+                    title = title_element.text.strip().replace('\n', '').replace('+', '')
+                    value = value_element.text.strip().replace('\n', '')
+
+                    data.update({title: value})  # Add title:value to listing details
+
+                # data["CENA"] = self.try_extract_element(By.XPATH, '/html/body/div[1]/main/div[2]/section/div/div[2]/div/div/div[1]/div/div[1]/span[2]/strong')
+                # divs = self.driver.find_elements(By.XPATH, '/html/body/div[1]/main/div[2]/section/div/div[2]/div/div/div[1]/div/div')
+                # for div in divs:
+                #     try:
+                #         title = div.find_element(By.XPATH, './span[1]/span').text.strip().replace('\n', '').replace('+', '')  # Parameter's title
+                #     except:
+                #         continue
+                #     try:
+                #         value = row.find_element(By.XPATH, './span[2]/strong').text.strip().replace('\n', '')  # Parameter's value
+                #     except:
+                #         continue
+
+                    
+                #     data.update({title: value})  # Add title:value to listing details
+
+                # data["POPLATKY ZA SLUŽBY"] = self.try_extract_element(By.XPATH, '/html/body/div[1]/main/div[2]/section/div/div[2]/div/div/div[1]/div/div[2]/span[2]/strong')
+                # data["POPLATKY ZA ENERGII"] = self.try_extract_element(By.XPATH, '/html/body/div[1]/main/div[2]/section/div/div[2]/div/div/div[1]/div/div[3]/span[2]/strong')
+                # data["VRATNÁ KAUCE"] = self.try_extract_element(By.XPATH, '/html/body/div[1]/main/div[2]/section/div/div[2]/div/div/div[1]/div/div[4]/span[2]/strong')
             else:
                 data["CENA"] = self.try_extract_element(By.XPATH, '/html/body/div[1]/main/div[2]/section/div/div[2]/div/div/div[1]/div/span[2]/strong')
 
@@ -151,10 +180,16 @@ class WebScraper:
                 df.rename(columns={col: 'Výtah'}, inplace=True)
             if 'Garáž' in col:
                 df.rename(columns={col: 'Garáž'}, inplace=True)
+            if 'Poplatky za energie' in col:
+                df.rename(columns={col: 'POPLATKY ZA ENERGIE'}, inplace=True)
+            if 'Poplatky za služby' in col:
+                df.rename(columns={col: 'POPLATKY ZA SLUŽBY'}, inplace=True)
+            if 'Vratná kauce' in col:
+                df.rename(columns={col: 'VRATNÁ KAUCE'}, inplace=True)
 
 
         # Define the fixed schema with the columns you want to include
-        columns = ['URL', 'CENA', 'POPLATKY ZA SLUŽBY', 'POPLATKY ZA ENERGII', 'VRATNÁ KAUCE', 'TYP NABÍDKY', 'LOKACE', 'ČÍSLO INZERÁTU', 'DISPOZICE', 'STAV', 'DOSTUPNÉ OD', 'VLASTNICTVÍ', 'TYP BUDOVY', 'PLOCHA', 'VYBAVENO', 'PODLAŽÍ', 'PENB', 'Internet', 'Energie', 'Balkón', 'Terasa', 'Sklep', 'Lodžie', 'Bezbariérový přístup', 'Parkování', 'Výtah', 'Garáž', 'MHD', 'Pošta', 'Obchod', 'Banka', 'Restaurace', 'Lékárna', 'Škola', 'Mateřská škola', 'Sportoviště', 'Hřiště']
+        columns = ['URL', 'CENA', 'POPLATKY ZA SLUŽBY', 'POPLATKY ZA ENERGIE', 'VRATNÁ KAUCE', 'TYP NABÍDKY', 'LOKACE', 'ČÍSLO INZERÁTU', 'DISPOZICE', 'STAV', 'DOSTUPNÉ OD', 'VLASTNICTVÍ', 'TYP BUDOVY', 'PLOCHA', 'VYBAVENO', 'PODLAŽÍ', 'PENB', 'Internet', 'Energie', 'Balkón', 'Terasa', 'Sklep', 'Lodžie', 'Bezbariérový přístup', 'Parkování', 'Výtah', 'Garáž', 'MHD', 'Pošta', 'Obchod', 'Banka', 'Restaurace', 'Lékárna', 'Škola', 'Mateřská škola', 'Sportoviště', 'Hřiště']
         fixed_schema_df = pd.DataFrame(columns=columns)
         fixed_schema_df.insert(0, 'Index', range(1, len(fixed_schema_df) + 1))
 

@@ -9,7 +9,7 @@ from datahandler import DataHandler
 import threading
 
 chrome_driver_path = 'D:/chdriver/chromedriver.exe'
-url = "https://www.bezrealitky.cz/vypis/nabidka-prodej/byt?page=51"
+url = "https://www.bezrealitky.cz/vypis/nabidka-pronajem"
 csv_file = 'listings_data.csv'
 
 # Function to start the scraping process
@@ -105,12 +105,14 @@ def update_graph(x_value, y_value):
     return px.scatter(cleaned_df, x=x_value, y=y_value)
 
 # Create a new column with numeric area values
-cleaned_df['PLOCHA_NUM'] = cleaned_df['PLOCHA'].str.extract('(\d+)').astype(float)
-cleaned_df['CENA_NUM'] = cleaned_df['CENA'].str.replace(' ', '').str.extract('(\d+)').astype(float)
+# cleaned_df['PLOCHA_NUM'] = cleaned_df['PLOCHA'].str.extract('(\d+)').astype(float)
+# cleaned_df['CENA_NUM'] = cleaned_df['CENA'].str.replace(' ', '').str.extract('(\d+)').astype(float)
+cleaned_df['PLOCHA_NUM'] = cleaned_df['PLOCHA']
+cleaned_df['CENA_NUM'] = cleaned_df['CENA']
 
 # Create new visualizations
 fig_bar = px.bar(cleaned_df.groupby('TYP BUDOVY').size().reset_index(name='count'), x='TYP BUDOVY', y='count')
-fig_heatmap = px.imshow(cleaned_df[['PLOCHA_NUM', 'PODLAŽÍ', 'CENA_NUM']].astype(float).corr())
+# fig_heatmap = px.imshow(cleaned_df[['PLOCHA_NUM', 'PODLAŽÍ', 'CENA_NUM']].astype(float).corr())
 fig_pie = px.pie(cleaned_df, names='DISPOZICE')
 fig_box = px.box(cleaned_df, y='PLOCHA_NUM')
 fig_histogram = px.histogram(cleaned_df, x='PLOCHA_NUM', nbins=20)
@@ -118,14 +120,14 @@ fig_histogram = px.histogram(cleaned_df, x='PLOCHA_NUM', nbins=20)
 # Update the new visualizations
 @app.callback(
     Output('bar-chart', 'figure'),
-    Output('heatmap', 'figure'),
+    # Output('heatmap', 'figure'),
     Output('pie-chart', 'figure'),
     Output('box-plot', 'figure'),
     Output('histogram', 'figure'),
     Input('update-visualizations', 'n_clicks')  # Add a new input for the update function
 )
 def update_new_visualizations(n_clicks=None):
-    return fig_bar, fig_heatmap, fig_pie, fig_box, fig_histogram
+    return fig_bar, fig_pie, fig_box, fig_histogram
 
 # Run the Dash app
 if __name__ == '__main__':
