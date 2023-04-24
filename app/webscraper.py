@@ -324,56 +324,6 @@ class WebScraper:
         except TimeoutException:
             logging.warning("Could not find the accept cookies button or it took too long to load.") 
 
-    # def scrape_listings(self, url):
-    #     main_url = url  # Store the main URL
-    #     self.driver.get(main_url)
-    #     self.accept_cookies()
-    #     logging.info(f"Starting to scrape listings from {main_url}")
-
-    #     page_counter = 1
-    #     max_pages = 1
-
-    #     while page_counter <= max_pages:
-    #         time.sleep(self.sleep_time)
-    #         listing_links = self.wait.until(EC.presence_of_all_elements_located((By.XPATH, '//*[@id="__next"]/main/section/div/div[2]/div/div[5]/section/article//div[2]/h2')))
-
-    #         try:
-    #             urls = [link.find_element_by_css_selector('a').get_attribute("href") for link in listing_links]
-    #         except NoSuchElementException as e: # Use specific exception
-    #             logging.error(f"Error extracting listing URLs: {e}")
-
-    #         for listing_url in urls:
-    #             try:
-    #                 listing_data = self.extract_info(listing_url)
-    #                 if listing_data is not None:
-    #                     self.listings_data.append(listing_data)
-    #             except Exception as e:
-    #                 logging.error(f"Error extracting data from {listing_url}: {e}")
-
-    #         try:
-    #             self.driver.get(main_url)  # Go back to the main URL after processing each listing
-    #             link_button = self.wait.until(EC.presence_of_element_located((By.XPATH, "//li[@class='page-item']/a[@class='page-link'][span[contains(text(), 'Další')]]")))
-    #             self.wait.until_not(EC.staleness_of(link_button))
-    #             link_url = link_button.get_attribute("href")
-    #             self.driver.get(link_url)
-    #             main_url = link_url  # Update the main URL
-    #             page_counter += 1
-    #         except TimeoutException:
-    #             logging.info("No more pages to scrape, exiting.")
-    #             break
-
-    #     logging.info(f"Web scraping completed. Collected {len(self.listings_data)} listings.")
-
-    #     # Close the driver
-    #     self.driver.quit()
-
-    #     # Save the data to a CSV file
-    #     # output = self.save_to_csv('listings_data.csv')
-
-    #     data = self.listings_data
-
-    #     return data
-
     def scrape_listings(self, url):
         """
         Scrape listing data from the given URL and return the data.
