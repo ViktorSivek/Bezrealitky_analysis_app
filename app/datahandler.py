@@ -36,6 +36,9 @@ class DataHandler:
             ('Jihočeský kraj', 'Jihočeský kraj')
         ]
 
+        # Drop NaN values in the 'LOKACE' column
+        df = df.dropna(subset=['LOKACE'])
+
         for old_name, new_name in locations:
             df.loc[df['LOKACE'].str.contains(old_name, case=False), 'LOKACE'] = new_name
 
@@ -43,10 +46,14 @@ class DataHandler:
         df = df[df['LOKACE'].isin([new_name for _, new_name in locations])]
 
         # Convert columns to appropriate data types
+        df = df.dropna(subset=['CENA'])
         df['CENA'] = df['CENA'].replace('[^\d]', '', regex=True).astype(int)
-        df['POPLATKY ZA SLUŽBY'] = df['POPLATKY ZA SLUŽBY'].replace('[^\d]', '', regex=True).fillna(0).astype(int)
-        df['POPLATKY ZA ENERGIE'] = df['POPLATKY ZA ENERGIE'].replace('[^\d]', '', regex=True).fillna(0).astype(int)
-        df['VRATNÁ KAUCE'] = df['VRATNÁ KAUCE'].replace('[^\d]', '', regex=True).fillna(0).astype(int)
+        if 'POPLATKY ZA SLUŽBY' in df.columns:
+            df['POPLATKY ZA SLUŽBY'] = df['POPLATKY ZA SLUŽBY'].replace('[^\d]', '', regex=True).fillna(0).astype(int)
+        if 'POPLATKY ZA ENERGIE' in df.columns:
+            df['POPLATKY ZA ENERGIE'] = df['POPLATKY ZA ENERGIE'].replace('[^\d]', '', regex=True).fillna(0).astype(int)
+        if 'VRATNÁ KAUCE' in df.columns:
+            df['VRATNÁ KAUCE'] = df['VRATNÁ KAUCE'].replace('[^\d]', '', regex=True).fillna(0).astype(int)
 
         cols_boolean = ['Internet', 'Energie', 'Balkón', 'Terasa', 'Sklep', 'Lodžie',
                         'Bezbariérový přístup', 'Parkování', 'Výtah', 'Garáž']
