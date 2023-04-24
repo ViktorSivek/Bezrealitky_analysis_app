@@ -8,8 +8,8 @@ from webscraper import WebScraper, configure_logging
 from datahandler import DataHandler
 import threading
 
-chrome_driver_path = 'D:/chdriver/chromedriver.exe'
-url = "https://www.bezrealitky.cz/vypis/nabidka-pronajem"
+chrome_driver_path = 'C:/Users/vsivek001/driver/chromedriver.exe'
+url = "https://www.bezrealitky.cz/vypis/nabidka-pronajem/byt?page=151"
 csv_file = 'listings_data.csv'
 
 # Function to start the scraping process
