@@ -54,12 +54,12 @@ def main():
     df = load_data()
 
     # Clean and analyze data
-    data_handler = DataHandler(csv_file)
-    cleaned_df = data_handler.clean_data(df)
-    analysis_results = data_handler.analyze_data(cleaned_df)
+    data_handler = DataHandler(df)  # Pass the loaded DataFrame instead of the CSV file name
+    cleaned_df = data_handler.clean_data()
+    lin_reg_rent, imputer, encoder = data_handler.analyze_data(cleaned_df)
 
     # Start the Dash app
-    dash_app = DashApp(cleaned_df)
+    dash_app = DashApp(cleaned_df, encoder, imputer, lin_reg_rent)
     dash_app.run(debug=True)
 
 if __name__ == "__main__":

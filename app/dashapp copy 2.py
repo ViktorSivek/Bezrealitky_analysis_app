@@ -9,34 +9,17 @@ import numpy as np
 import pickle
 from sklearn.linear_model import LinearRegression
 from sklearn.impute import SimpleImputer
-from sklearn.preprocessing import MultiLabelBinarizer
-from datahandler import DataHandler  # Import DashHandler
 
 class DashApp:
-    def __init__(self, cleaned_df, encoder, imputer, lin_reg_rent):
-        self.app = dash.Dash(__name__)
+    def __init__(self, cleaned_df, lin_reg_rent: LinearRegression, imputer: SimpleImputer):
         self.cleaned_df = cleaned_df
-        self.encoder = encoder
-        self.imputer = imputer
         self.lin_reg_rent = lin_reg_rent
+        self.imputer = imputer
+        self.app = dash.Dash(__name__)
         self.layout = self.create_layout()
         self.app.layout = self.layout
         self.set_callbacks()
 
-        # Create an instance of DashHandler and pass cleaned_df to its constructor
-        self.dash_handler = DataHandler(cleaned_df)
-
-        # Call the analyze_data method of the DashHandler instance
-        self.lin_reg_rent, self.imputer, self.train_columns = self.dash_handler.analyze_data(cleaned_df)
-
-
-        print("clean")
-        print(cleaned_df)
-        # Get the unique values of the 'LOKACE', 'DISPOZICE', and 'STAV' columns
-        self.unique_lokalita = cleaned_df['LOKACE'].unique().tolist()
-        self.unique_dispozice = cleaned_df['DISPOZICE'].unique().tolist()
-        self.unique_stav = cleaned_df['STAV'].unique().tolist()
-        
 
     def load_model(self, model_file):
         with open(model_file, 'rb') as file:
@@ -86,51 +69,22 @@ class DashApp:
             ])
         ])
     
-    def custom_one_hot_encoding(self, df, column, prefix):
-        unique_values = df[column].unique()
-        for value in unique_values:
-            df[f'{prefix}_{value}'] = (df[column] == value).astype(int)
-        df.drop(column, axis=1, inplace=True)
-        return df
-    
     def make_prediction(self, n_clicks, lokace, dispozice, stav):
-        if n_clicks is None or n_clicks == 0:
-            return ""
+        if n_clicks == 0:
+            return "N/A"
 
-        input_data = pd.DataFrame([[self.unique_lokalita[int(lokace)], self.unique_dispozice[int(dispozice)], self.unique_stav[int(stav)]]], columns=['LOKALITA', 'DISPOZICE', 'STAV'])
+        # Map the input features to their corresponding numerical values
+        lokace_encoded = self.cleaned_df[self.cleaned_df['LOKACE'] == lokace]['LOKACE'].unique()[0]
+        dispozice_encoded = self.cleaned_df[self.cleaned_df['DISPOZICE'] == dispozice]['DISPOZICE'].unique()[0]
+        stav_encoded = self.cleaned_df[self.cleaned_df['STAV'] == stav]['STAV'].unique()[0]
 
-        print("input_data")
-        print(input_data)
+        input_features = np.array([[lokace_encoded, dispozice_encoded, stav_encoded]])
 
-        # Encode categorical variables using pd.get_dummies()
-        lokalita_encoded = self.encoder['LOKALITA'].transform(input_data['LOKALITA']).toarray()
-        dispozice_encoded = self.encoder['DISPOZICE'].transform(input_data['DISPOZICE']).toarray()
-        stav_encoded = self.encoder['STAV'].transform(input_data['STAV']).toarray()
+        # Use the trained model to make predictions
+        prediction = self.lin_reg_rent.predict(input_features)
 
-        input_encoded = pd.concat([pd.DataFrame(lokalita_encoded, columns=self.encoder['LOKALITA'].get_feature_names_out(['LOKALITA'])),
-                                pd.DataFrame(dispozice_encoded, columns=self.encoder['DISPOZICE'].get_feature_names_out(['DISPOZICE'])),
-                                pd.DataFrame(stav_encoded, columns=self.encoder['STAV'].get_feature_names_out(['STAV']))], axis=1)
-
-        print("input_encoded")
-        print(input_encoded)
-
-        # Create an empty DataFrame with the same columns as the X_rent DataFrame
-        input_aligned = pd.DataFrame(columns=self.train_columns)
-
-        # Align the columns of the input_encoded DataFrame with the columns of the input_aligned DataFrame
-        input_aligned = input_encoded.reindex(columns=input_aligned.columns, fill_value=0)
-
-        print("input_aligned")
-        print(input_aligned)
-
-        input_imputed = self.imputer.transform(input_aligned)
-
-        print("input_imputed")
-        print(input_imputed)
-
-        predicted_price = self.lin_reg_rent.predict(input_imputed)
-
-        return f"Predicted price: {predicted_price[0]:,.0f} CZK"
+        # Display the prediction
+        return f"${round(prediction[0], 2)}"
     
     def create_layout(self):
         layout = html.Div([
@@ -185,10 +139,10 @@ class DashApp:
         )
 
         def update_new_visualizations(n_clicks=None):
-            fig_bar = px.bar(self.data_handler.cleaned_df.groupby('TYP BUDOVY').size().reset_index(name='count'), x='TYP BUDOVY', y='count')
-            fig_pie = px.pie(self.data_handler.cleaned_df, names='DISPOZICE')
-            fig_box = px.box(self.data_handler.cleaned_df, y='PLOCHA')
-            fig_histogram = px.histogram(self.data_handler.cleaned_df, x='PLOCHA', nbins=20)
+            fig_bar = px.bar(self.cleaned_df.groupby('TYP BUDOVY').size().reset_index(name='count'), x='TYP BUDOVY', y='count')
+            fig_pie = px.pie(self.cleaned_df, names='DISPOZICE')
+            fig_box = px.box(self.cleaned_df, y='PLOCHA')
+            fig_histogram = px.histogram(self.cleaned_df, x='PLOCHA', nbins=20)
             return fig_bar, fig_pie, fig_box, fig_histogram
 
         # @self.app.callback(
