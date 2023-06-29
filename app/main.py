@@ -6,12 +6,11 @@ from dash.dependencies import Input, Output
 import plotly.express as px
 from webscraper import WebScraper, configure_logging
 from datahandler import DataHandler
-from dashapp import DashApp
 import threading
 
 # Define constants
 chrome_driver_path = 'D:/chdriver/chromedriver.exe'
-url = "https://www.bezrealitky.cz/vypis/nabidka-pronajem"
+url = "https://www.bezrealitky.cz/vypis/nabidka-pronajem/"
 csv_file = 'listings_data.csv'
 
 def start_scraping():
@@ -56,11 +55,8 @@ def main():
     # Clean and analyze data
     data_handler = DataHandler(df)  # Pass the loaded DataFrame instead of the CSV file name
     cleaned_df = data_handler.clean_data()
-    lin_reg_rent, imputer, encoder = data_handler.analyze_data(cleaned_df)
+    print(cleaned_df)
 
-    # Start the Dash app
-    dash_app = DashApp(cleaned_df, encoder, imputer, lin_reg_rent)
-    dash_app.run(debug=True)
 
 if __name__ == "__main__":
     main()
